@@ -1,0 +1,68 @@
+#!/bin/bash -ie
+
+main() {
+  local env=()
+  local output=""
+
+  while [[ $# > 1 ]]; do
+    key="$1"
+    case $key in
+        -e|--env)
+        env+=("$2")
+        shift # past argument
+        ;;
+        -o|--output)
+        output="$2"
+        shift # past argument
+        ;;
+        *)
+        # unknown option
+        ;;
+    esac
+    shift # past argument or value
+  done
+
+  local package="$1"
+  local name="${package%@*}"
+  local base=$(mktemp -d)
+  local workdir="${base}/${name}-package"
+
+  if [ -z "$output" ]; then
+    output="$name.zip"
+  fi
+  # Normalize output path because we'll be changing directories
+  output=$(realpath -m "$output")
+
+  mkdir $workdir
+  cd "$workdir"
+
+  install_packages "$package"
+  generate_entrypoint "$name"
+  dump_env ${env[@]}
+  echo "Writing $output"
+  package "$output"
+}
+
+install_packages() {
+  npm init -y
+  npm install --save dotenv "$1"
+}
+
+generate_entrypoint() {
+  cat <<EOF > index.js
+require("dotenv").config();
+module.exports = require("$1");
+EOF
+}
+
+dump_env() {
+  for line in $@; do
+    echo $line >> .env
+  done
+}
+
+package() {
+  zip -r $1 * .env
+}
+
+main $@
