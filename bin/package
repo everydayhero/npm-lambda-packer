@@ -1,4 +1,4 @@
-#!/bin/bash -ie
+#!/bin/bash -e
 
 main() {
   local env=()
