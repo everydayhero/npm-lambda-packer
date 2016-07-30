@@ -14,7 +14,7 @@ variable "environment" {
 
 resource "null_resource" "runner" {
   triggers {
-    filepath = "${path.cwd}/tmp/${md5(concat(var.package, var.version, var.environment))}.zip"
+    filepath = "${path.cwd}/tmp/${md5("${var.package}${var.version}${var.environment}")}.zip"
   }
 
   provisioner "local-exec" {
