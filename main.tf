@@ -1,26 +1,29 @@
 variable "package" {
-  description = "The name NPM package"
+  type        = "string"
+  description = "The NPM package to be bundled for use as a Lambda function."
 }
 
 variable "version" {
-  value = "*"
-  description = "The version of the package"
+  type        = "string"
+  default     = "*"
+  description = "The package version."
 }
 
 variable "environment" {
-  value = ""
-  description = "Environment variables to use available"
+  type        = "list"
+  value       = []
+  description = "Environment variables to inject into the Lambda function."
 }
 
 resource "null_resource" "runner" {
   triggers {
-    filepath = "${path.cwd}/tmp/${md5("${var.package}${var.version}${var.environment}")}.zip"
+    filepath = "${path.cwd}/tmp/${md5("${var.package}${var.version}${jsonencode(sort(var.environment))}")}.zip"
   }
 
   provisioner "local-exec" {
     command = <<COMMAND
 mkdir -p ${path.cwd}/tmp
-${path.module}/bin/package ${join(" ", formatlist("-e \"%s\"", compact(split("\n", var.environment))))} -o ${null_resource.runner.triggers.filepath} ${var.package}@${var.version}
+${path.module}/bin/package ${join(" ", formatlist("-e \"%s\"", var.environment))} -o ${null_resource.runner.triggers.filepath} ${var.package}@${var.version}
 COMMAND
   }
 }
