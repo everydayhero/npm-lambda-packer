@@ -3,12 +3,12 @@ variable "package" {
 }
 
 variable "version" {
-  value = "*"
+  default = "*"
   description = "The version of the package"
 }
 
 variable "environment" {
-  value = ""
+  default = ""
   description = "Environment variables to use available"
 }
 
