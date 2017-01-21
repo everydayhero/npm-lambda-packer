@@ -22,10 +22,15 @@ main() {
     shift # past argument or value
   done
 
-  local package="$1"
-  local name="${package%@*}"
+  local package="${1/%@*/}"
+  local name=$(basename "${package%@*}")
   local base=$(mktemp -d)
   local workdir="${base}/${name}-package"
+
+  # Installing a package from GitHub works a bit differently.
+  if [[ "${package}" =~ / ]]; then
+    package="${package/@/#}"
+  fi
 
   if [ -z "$output" ]; then
     output="$name.zip"
